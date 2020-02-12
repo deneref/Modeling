@@ -2,69 +2,87 @@ package main
 import(
 	"fmt"
 	"math"
-	"reflect"
+	_"reflect"
 	)
-
+//структура слогаемого
 type term struct{
 	coef float64
-	pow float64
+	pow int
 }
-//возведение слогаемого в квадрат
-func pow2(cur_term *term)*term{
-	tmp := new(term)
-	tmp.coef = math.Pow(cur_term.coef,2)
-	tmp.pow = cur_term.pow*2
-	return tmp
+//добавить слагаемое к полиному
+func add(poly map[int]float64, term *term)map[int]float64{
+	if _, ok := poly[term.pow]; ok{
+		poly[term.pow] += term.coef
+	}else{
+		poly[term.pow] = term.coef
+	}
+	return poly
 }
-//двойное произведение двух множителей
-func mult(t1, t2 *term) *term{
-	res := new(term)
-	res.coef = t1.coef*t2.coef
-	res.pow = t1.pow+t2.pow
-	return res
+//умножить два слогаемых и записать в полином
+func mult(poly map[int]float64, term1, term2 *term)map[int]float64{
+	to_add := multterm(term1, term2)
+	add(poly, to_add)
+	return poly
+}
+//перемножает два слогаемых и возвращает результат
+func multterm(term1, term2 *term)*term{
+	res := term{term1.coef*term2.coef, term2.pow+term1.pow}
+	return &res
 }
 //возведение многочлена в квадрат
-func poly_pow(poly[]*term) []*term{
-	res := make([]*term, 0)
-	print_info(poly)
-	for _, i := range poly{
-		for _, j := range poly{
-			if reflect.DeepEqual(i,j){
-				res = append(res, mult(i,j))
-			}else{
-				res = append(res, pow2(i))
-			}
-			fmt.Println(i,j,res)
+func poly_pow(poly map[int]float64) map[int]float64{
+	res := make(map[int]float64)
+	for i, j := range poly{
+		for k, z := range poly{
+			//fmt.Println(i,j,k,z)
+			mult(res, &term{j, i}, &term{z,k})
 		}
 	}
 	return res
 }
 
-func integrate(poly []*term, x0, x float64) ([]*term, float64){
+func integrate(poly map[int]float64, x0, x float64) (map[int]float64, float64){
 	var answer float64
+	res := make(map[int]float64)
 	for i, j := range poly{
-		j := term{j.coef, j.pow+1}
-		j.coef *= 1.0/j.pow
-		answer += j.coef*math.Pow(x, j.pow) - j.coef*math.Pow(x0, j.pow)
-		poly[i] = &j
+		integr := term{j, i+1}
+		integr.coef *= 1.0/float64(integr.pow)
+		res[integr.pow] = integr.coef
+		answer += integr.coef*math.Pow(x, float64(integr.pow)) - integr.coef*math.Pow(x0, float64(integr.pow))
+		//res[integr.pow] = integr.coef
 	}
-	return poly, answer
+	//fmt.Println("res - ", res)
+	return res, answer
 }
 
-func picar(x float64)float64{
-	//u0 := 0
-	poly := make([]*term, 0)
-	poly = append(poly, &term{1, 2})
-	poly = append(poly, &term{1.0/3.0, 3})
-	poly1 := poly_pow(poly)
-	print_info(poly1)
-	return 0
+func picar(x float64, n int)map[int]float64{
+	u0 := 0.0
+	answer := make(map[int]float64, 0)
+	poly := make(map[int]float64)
+	curr := make(map[int]float64)
+	poly[2] = 1.0
+	var res float64
+	for i:=0;i<n;i++{
+		curr = poly_pow(curr)
+		curr[2] = 1.0
+		//fmt.Println("-----", i, "-----")
+		//fmt.Println("curr", curr)
+		curr, res = integrate(curr, 0.0, x)
+		answer[i] = u0 + res
+	}
+	return answer
 }
-func print_info(p []*term){
-	for i, j := range p{
-		fmt.Println(i, ":", j.coef, j.pow)
+func print_info(poly map[int]float64){
+	for i, j := range poly{
+		fmt.Println(i, j)
+	}
+}
+func print_res(res map[int]float64, n int){
+	for i:= 0; i<n;i++{
+		fmt.Println(i+1, res[i])
 	}
 }
 func main(){
-	_ = picar(1.5)
+	res := picar(1.5, 5)
+	print_res(res, 5)
 }
