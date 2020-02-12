@@ -97,11 +97,15 @@ func print_res(x float64, n, npicar int){
 	fmt.Print("\n")
 	fmt.Printf("%10s|%10s|%10s|%10s|%10s|%10s|\n", " ", "3-e", "4-e", "n-e", " ", " ")
 	i:=0.0
-	for ;i<=x;i+=0.01{
+	for ;i<=x;i+=0.001{
 		fmt.Printf("%10.5f|%10.5f|%10.5f|%10.5f|%10.5f|%10.5f|\n", i, picar(i, 3), picar(i, 4), picar(i, npicar), euler_implicit(i,n), 0.1)
 	}
 	for i:=0; i<66;i++{ fmt.Print("-")}
 }
 func main(){
-	print_res(2.1, 100, 6)
+	print_res(2.0, 100, 6)
 }
+/*
+yn+1 = yn + h*(xn+1^2 + yn+1^2)
+yn+1^2 - yn+1/h +yn/h + xn+1^2
+*/
