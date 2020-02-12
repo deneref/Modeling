@@ -1,2 +1,6 @@
 
 *.exe
+lab01/lab01.aux
+*.log
+*.gz
+*.toc
