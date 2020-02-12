@@ -4,5 +4,5 @@
 eq <-  noquote(paste(expression("2x+5y-2z+2p=9\\\\3x-2y+1z-3p=34\\\\-3x+3y+2z+4p=33\\\\2x+3y+4z+5p=125")))
 
 $$
-\begin{cases} `r eq` \end{cases}
+\begin{cases} 2x+5y-2z+2p=9\\\\3x-2y+1z-3p=34\\\\-3x+3y+2z+4p=33\\\\2x+3y+4z+5p=125 \end{cases}
 $$
