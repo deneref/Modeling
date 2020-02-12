@@ -55,9 +55,9 @@ func integrate(poly map[int]float64, x0, x float64) (map[int]float64, float64){
 	return res, answer
 }
 
-func picar(x float64, n int)map[int]float64{
+func picar(x float64, n int)float64{
 	u0 := 0.0
-	answer := make(map[int]float64, 0)
+	answer := 0.0
 	poly := make(map[int]float64)
 	curr := make(map[int]float64)
 	poly[2] = 1.0
@@ -68,21 +68,40 @@ func picar(x float64, n int)map[int]float64{
 		//fmt.Println("-----", i, "-----")
 		//fmt.Println("curr", curr)
 		curr, res = integrate(curr, 0.0, x)
-		answer[i] = u0 + res
+		answer = u0 + res
 	}
 	return answer
 }
+func f(x, y float64)float64{
+	return x*x+y*y
+}
+func euler_implicit(xn float64, n int)float64{
+	h := xn / float64(n)
+	y:=0.0 
+	x:=0.0
+	for i:=0; i<=n;i++{
+		y = y + h*f(x, y)
+		x+=h
+	}
+	return y
+}
+
 func print_info(poly map[int]float64){
 	for i, j := range poly{
 		fmt.Println(i, j)
 	}
 }
-func print_res(res map[int]float64, n int){
-	for i:= 0; i<n;i++{
-		fmt.Println(i+1, res[i])
+func print_res(x float64, n, npicar int){
+	fmt.Printf("%10s|%-32s|%10s|%10s|\n", "x", fmt.Sprintf("%32s","Пикар"), "Явн.", "Неявн.")
+	for i:=0; i<66;i++{ fmt.Print("-")}
+	fmt.Print("\n")
+	fmt.Printf("%10s|%10s|%10s|%10s|%10s|%10s|\n", " ", "3-e", "4-e", "n-e", " ", " ")
+	i:=0.0
+	for ;i<=x;i+=0.01{
+		fmt.Printf("%10.5f|%10.5f|%10.5f|%10.5f|%10.5f|%10.5f|\n", i, picar(i, 3), picar(i, 4), picar(i, npicar), euler_implicit(i,n), 0.1)
 	}
+	for i:=0; i<66;i++{ fmt.Print("-")}
 }
 func main(){
-	res := picar(1.5, 5)
-	print_res(res, 5)
+	print_res(2.1, 100, 6)
 }
