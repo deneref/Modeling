@@ -61,7 +61,7 @@ func picard(x float64, n int)float64{
 	var res float64
 	for i:=0;i<n;i++{
 		curr = poly_pow(curr)
-		curr[2] = 1.0
+		curr = add(curr, &term{1.0,2})
 		curr, res = integrate(curr, 0.0, x)
 		answer = u0 + res
 	}
@@ -77,8 +77,8 @@ func euler_explicit(xn float64, n int)float64{
 	h := xn / float64(n)
 	y:=0.0 
 	x:=0.0
-	for i:=0; i<=n;i++{
-		y = y + h*f(x, y)
+	for i:=0; i<n;i++{
+		y += h*f(x, y)
 		x+=h
 	}
 	return y
@@ -87,15 +87,18 @@ func euler_explicit(xn float64, n int)float64{
 //implicit(backward) euler method
 func euler_implicit(xn float64, n int)float64{
 	//yn+1^2 - 1/h*yn+1 + 1/h*yn + xn+1^2
+	//n *= 10
 	h := xn / float64(n)
 	y:=0.0 
 	x:=0.0
 	var a, b, c, dis, x1 float64
 	for i:=0;i<=n;i++{
-		a = 1; b = -1.0/h; c = 1.0/h*y+(x+h)*(x+h)
+		//a = 1; b = -1.0/h; c = 1.0/h*y+(x+h)*(x+h)
+		a = h; b = -1.0; c = y+math.Pow(x+h,2)
 		dis = D(a, b, c)
 		if dis>=0{
 			x1 = (-b - math.Sqrt(dis))/2/a
+			//x2 = (-b + math.Sqrt(dis))/2/a
 		}
 		y = x1
 		x+=h
@@ -119,12 +122,12 @@ func print_res(x float64, n, npicar int){
 	fmt.Printf("%10s|%10s|%10s|%10s|%10s|%10s|\n", " ", "3-e", "4-e", "n-e", " ", " ")
 	i:=0.0
 	for ;i<=x;i+=0.01{
-		fmt.Printf("%10.5f|%10.5f|%10.5f|%10.5f|%10.5f|%10.5f|\n", i, picard(i, 3), picard(i, 4), picard(i, npicar), euler_explicit(i,n), euler_implicit(i,n))
+		fmt.Printf("%10.5f|%10.5f|%10.5f|%10.5f|%10.5f|%10.5f|\n", i, picard(i, npicar-2), picard(i, npicar-1), picard(i, npicar), euler_explicit(i,n), euler_implicit(i,n*10))
 	}
 	for i:=0; i<66;i++{ fmt.Print("-")}
 }
 func main(){
 	//x, n for euler, n for picard
-	print_res(2.2, 100, 7)
+	print_res(2.1, 30, 7)
 }
 
