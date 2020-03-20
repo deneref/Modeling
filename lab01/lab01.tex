@@ -55,30 +55,15 @@ escapeinside={\#*}{*)}   % если нужно добавить коммента
 
 \usepackage{titlesec}
 \titlespacing{\chapter}{0pt}{12pt plus 4pt minus 2pt}{0pt}
+\usepackage{indentfirst}
+\setlength{\parindent}{1.4cm}
 
 \usepackage{amsmath}
 
 \begin{document}
 %\def\chaptername{} % убирает "Глава"
-\begin{titlepage}
-	\centering
-	{\scshape\LARGE МГТУ им. Баумана \par}
-	\vspace{3cm}
-	{\scshape\Large Лабораторная работа №1\par}
-	\vspace{0.5cm}	
-	{\scshape\Large По курсу: "Моделирование"\par}
-	\vspace{1.5cm}
-	{\huge\bfseries Метод Пикарда\par}
-	\vspace{2cm}
-	\Large Работу выполнил: Мокеев Даниил, ИУ7-64\par
-	\vspace{0.5cm}
-	\Large Преподаватели:  Градов В.M.\par
-
-	\vfill
-	\large \textit {Москва, 2020} \par
-\end{titlepage}
-
 \tableofcontents
+\setcounter{page}{2}
 
 \newpage
 \chapter*{Введение}
@@ -90,8 +75,6 @@ escapeinside={\#*}{*)}   % если нужно добавить коммента
 	\item реализовать метод Пикарда, явный и неявный методы Эйлера для решения уровнения $y'(x) = x^2 + y^2$;
 	\item сравнить методы между собой.
 \end{itemize}
-
-
 \chapter{Аналитическая часть}
 В данной части будут рассмотрены теоретические основы методов Пикара, явного и неявного методов Эйлера. 
 

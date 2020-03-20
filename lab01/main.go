@@ -81,6 +81,7 @@ func euler_explicit(xn float64, n int)float64{
 		y += h*f(x, y)
 		x+=h
 	}
+	_ = x
 	return y
 }
 
@@ -91,16 +92,18 @@ func euler_implicit(xn float64, n int)float64{
 	h := xn / float64(n)
 	y:=0.0 
 	x:=0.0
-	var a, b, c, dis, x1 float64
-	for i:=0;i<=n;i++{
-		//a = 1; b = -1.0/h; c = 1.0/h*y+(x+h)*(x+h)
-		a = h; b = -1.0; c = y+math.Pow(x+h,2)
+	var a, b, c, dis, y1, y2 float64
+	for i:=0; i<n;i++{
+		a = 1; b = -1.0/h; c = 1.0/h*y+(x+h)*(x+h)
+		//a = h; b = -1.0; c = y+math.Pow(x+h,2)*h
 		dis = D(a, b, c)
 		if dis>=0{
-			x1 = (-b - math.Sqrt(dis))/2/a
-			//x2 = (-b + math.Sqrt(dis))/2/a
+			y1 = (-b - math.Sqrt(dis))/2/a
+			y2 = (-b + math.Sqrt(dis))/2/a
+			_ = y2
 		}
-		y = x1
+		//fmt.Println(x, y, y1, y2)
+		y = y1
 		x+=h
 	}
 	return y
@@ -119,15 +122,15 @@ func print_res(x float64, n, npicar int){
 	fmt.Printf("%10s|%-32s|%10s|%10s|\n", "x", fmt.Sprintf("%32s","Picard's"), "Explicit", "Implicit")
 	for i:=0; i<66;i++{ fmt.Print("-")}
 	fmt.Print("\n")
-	fmt.Printf("%10s|%10s|%10s|%10s|%10s|%10s|\n", " ", "3-e", "4-e", "n-e", " ", " ")
+	fmt.Printf("%10s|%d %-8s|%d %-8s|%d %-8s|%10s|%10s|\n", " ",npicar-2, "-e", npicar-1,"-e", npicar,"-e", " ", " ")
 	i:=0.0
-	for ;i<=x;i+=0.01{
-		fmt.Printf("%10.5f|%10.5f|%10.5f|%10.5f|%10.5f|%10.5f|\n", i, picard(i, npicar-2), picard(i, npicar-1), picard(i, npicar), euler_explicit(i,n), euler_implicit(i,n*10))
+	for ;i<=x;i+=0.1{
+		fmt.Printf("%10.5f|%10.5f|%10.5f|%10.5f|%10.5f|%10.5f|\n", i, picard(i, npicar-2), picard(i, npicar-1), picard(i, npicar), euler_explicit(i,n), euler_implicit(i,n))
 	}
 	for i:=0; i<66;i++{ fmt.Print("-")}
 }
 func main(){
 	//x, n for euler, n for picard
-	print_res(2.1, 30, 7)
+	print_res(2.2, 1000000, 9)
 }
 
