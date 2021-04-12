@@ -72,6 +72,23 @@ func picard(x float64, n int)float64{
 func f(x, y float64)float64{
 	return x*x+y*y
 }
+
+//Runge–Kutta method
+func runge_kutta(xn float64, n int)float64{
+	h := xn / float64(n)
+	alpha := 0.5
+	y := 0.0
+	x := 0.0
+
+	for i:=0; i<n;i++{
+		y += h * ( (1- alpha) * f(x,y) + alpha * f(x+h/(2*alpha), y+(h/2*alpha)*f(x,y)) )
+		x+=h
+	}
+	_ = x
+	return y
+}
+
+
 //explicit euler method
 func euler_explicit(xn float64, n int)float64{
 	h := xn / float64(n)
@@ -119,18 +136,19 @@ func print_info(poly map[int]float64){
 	}
 }
 func print_res(x float64, n, npicar int){
-	fmt.Printf("%10s|%-32s|%10s|%10s|\n", "x", fmt.Sprintf("%32s","Picard's"), "Explicit", "Implicit")
+	fmt.Printf("%10s|%-32s|%10s|%10s|%10s|\n", "x", fmt.Sprintf("%32s","Picard's"), "Explicit", "Implicit", "Runge-Kutta")
 	for i:=0; i<66;i++{ fmt.Print("-")}
 	fmt.Print("\n")
-	fmt.Printf("%10s|%d %-8s|%d %-8s|%d %-8s|%10s|%10s|\n", " ",npicar-2, "-e", npicar-1,"-e", npicar,"-e", " ", " ")
+	fmt.Printf("%10s|%d %-8s|%d %-8s|%d %-8s|%10s|%10s|%10s|\n", " ",npicar-2, "-e", npicar-1,"-e", npicar,"-e", " ", " ", " ")
 	i:=0.0
-	for ;i<=x;i+=0.1{
-		fmt.Printf("%10.5f|%10.5f|%10.5f|%10.5f|%10.5f|%10.5f|\n", i, picard(i, npicar-2), picard(i, npicar-1), picard(i, npicar), euler_explicit(i,n), euler_implicit(i,n))
+	for ;i<=x;i+=0.01{
+		fmt.Printf("%10.5f|%10.5f|%10.5f|%10.5f|%10.5f|%10.5f|%10.5f|\n", i, picard(i, npicar-2), picard(i, npicar-1),
+		 picard(i, npicar), euler_explicit(i,n), euler_implicit(i,n), runge_kutta(i, n))
 	}
 	for i:=0; i<66;i++{ fmt.Print("-")}
 }
 func main(){
 	//x, n for euler, n for picard
-	print_res(2.2, 1000000, 9)
+	print_res(2.2, 1000000, 3)
 }
 

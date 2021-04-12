@@ -1,2 +1,2 @@
 # Modeling
-BMSTU course 2020
+BMSTU course 2021
