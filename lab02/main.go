@@ -20,6 +20,11 @@ var Rk = 0.25
 var Radius = 0.0035
 var Uco = 1400
 var Tw = 2000
+var lp = 12
+
+var Tstart = 300
+var I0 = 0.5
+var U0 = 1500
 
 //term structure
 type term struct {
@@ -33,95 +38,64 @@ type dataSplines struct {
 	TtoSigma gospline.Spline
 }
 
-//add term to polinomial
-func add(poly map[int]float64, term *term) map[int]float64 {
-	if _, ok := poly[term.pow]; ok {
-		poly[term.pow] += term.coef
-	} else {
-		poly[term.pow] = term.coef
-	}
-	return poly
+func (spline *dataSplines) T0(I float64) float64 {
+	return spline.ItoTo.At(I)
 }
 
-//multiply two terms and write to polinomial
-func mult(poly map[int]float64, term1, term2 *term) map[int]float64 {
-	to_add := multterm(term1, term2)
-	add(poly, to_add)
-	return poly
+func (spline *dataSplines) m(I float64) float64 {
+	return spline.Itom.At(I)
 }
 
-//multiply two terms and return result
-func multterm(term1, term2 *term) *term {
-	res := term{term1.coef * term2.coef, term2.pow + term1.pow}
-	return &res
-}
-
-//squaring a polinomial
-func poly_pow(poly map[int]float64) map[int]float64 {
-	res := make(map[int]float64)
-	for i, j := range poly {
-		for k, z := range poly {
-			mult(res, &term{j, i}, &term{z, k})
-		}
-	}
-	return res
-}
-
-func integrate(poly map[int]float64, x0, x float64) (map[int]float64, float64) {
-	var answer float64
-	res := make(map[int]float64)
-	for i, j := range poly {
-		integr := term{j, i + 1}
-		integr.coef *= 1.0 / float64(integr.pow)
-		res[integr.pow] = integr.coef
-		answer += integr.coef*math.Pow(x, float64(integr.pow)) - integr.coef*math.Pow(x0, float64(integr.pow))
-	}
-	return res, answer
-}
-
-//given function
-func f(x, y float64) float64 {
-	return x*x + y*y
+func (spline *dataSplines) sigma(T float64) float64 {
+	return spline.TtoSigma.At(T)
 }
 
 func dUdt(I float64) float64 {
 	return -I / float64(Ck)
 }
 
-func dIdT(U, I float64) float64 {
-	return (U - (Rk+R(I))*I) / Lk
+func dIdT(splines *dataSplines, U, I float64) float64 {
+	return (U - (Rk+Rp(splines, I))*I) / Lk
 }
 
-func R(I float64) float64 {
-	return 1
-}
-
-func T(z, I, m, T0 float64) float64 {
-	return T0 + (float64(Tw)-T0)*math.Pow(z, m)
-}
-
-func D(a, b, c float64) float64 {
-	return b*b - 4*a*c
-}
-
-func print_info(poly map[int]float64) {
-	for i, j := range poly {
-		fmt.Println(i, j)
+func Rp(splines *dataSplines, I float64) float64 {
+	s := make([]float64, 0)
+	n := 100.0
+	for i := 0.0; i <= 1.0; i += 1.0 / n {
+		s = append(s, i*splines.sigma(T(splines, i, I)))
 	}
+
+	return float64(lp) / (2 * 3.14 * math.Pow(Radius, 2) * integrate(s, n))
 }
 
-func runge_kutta4(xn, I0, Uo float64, n int, splines dataSplines) float64 {
-	h := xn / float64(n)
-	y := 0.0
-	x := 0.0
+func integrate(s []float64, h float64) float64 {
+	result := (s[0] + s[len(s)-1]) * 0.5
+	for i := 1; i < len(s)-1; i++ {
+		result += s[i]
+	}
 
-	polinom := make(map[int]float64)
+	return result * h
+}
+
+func T(splines *dataSplines, z, I float64) float64 {
+	return splines.T0(I) + (float64(Tw)-splines.T0(I))*math.Pow(z, splines.m(I))
+}
+
+func runge_kutta4(xn, I, U float64, n int, splines dataSplines) float64 {
+	h := xn / float64(n)
 
 	for i := 0; i < n; i++ {
-		k1 := dIdT(x, y)
-		k2 := dIdT(x+h/2, y+h/2*k1)
-		k3 := dIdT(x+h/2, y+h/2*k2)
-		k4 := dIdT(x+h, y+h*k3)
+		k1 := dIdT(&splines, I, U)
+		m1 := dUdt(I)
+
+		k2 := dIdT(&splines, I+h/2, U+h*m1*0.5)
+		m2 := dUdt(I + h*k1*0.5)
+
+		k3 := dIdT(&splines, I+h*0.5, U+h*m2*0.5)
+		m3 := dUdt(I + h*k2*0.5)
+
+		k4 := dIdT(&splines, I+h*k3, U+h*m3)
+		m4 := dUdt(I + h*k3)
 
 		//fmt.Printf("%f %f %f %f\n", k1, k2, k3, k4)
 
@@ -227,3 +201,52 @@ func makeGraphFileFromMap(spline map[float64]float64, filename, title, Xlegend, 
 		panic(err)
 	}
 }
+
+/*
+//add term to polinomial
+func add(poly map[int]float64, term *term) map[int]float64 {
+	if _, ok := poly[term.pow]; ok {
+		poly[term.pow] += term.coef
+	} else {
+		poly[term.pow] = term.coef
+	}
+	return poly
+}
+
+//multiply two terms and write to polinomial
+func mult(poly map[int]float64, term1, term2 *term) map[int]float64 {
+	to_add := multterm(term1, term2)
+	add(poly, to_add)
+	return poly
+}
+
+//multiply two terms and return result
+func multterm(term1, term2 *term) *term {
+	res := term{term1.coef * term2.coef, term2.pow + term1.pow}
+	return &res
+}
+
+//squaring a polinomial
+func poly_pow(poly map[int]float64) map[int]float64 {
+	res := make(map[int]float64)
+	for i, j := range poly {
+		for k, z := range poly {
+			mult(res, &term{j, i}, &term{z, k})
+		}
+	}
+	return res
+}
+
+func integrate(poly map[int]float64, x0, x float64) (map[int]float64, float64) {
+	var answer float64
+	res := make(map[int]float64)
+	for i, j := range poly {
+		integr := term{j, i + 1}
+		integr.coef *= 1.0 / float64(integr.pow)
+		res[integr.pow] = integr.coef
+		answer += integr.coef*math.Pow(x, float64(integr.pow)) - integr.coef*math.Pow(x0, float64(integr.pow))
+	}
+	return res, answer
+}
+
+*/
